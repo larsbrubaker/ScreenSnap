@@ -23,3 +23,64 @@ screensnap-core = { path = "../screensnap-core" }
 agg-gui = { workspace = true }
 agg-gui-shell = { workspace = true }
 serde_json = { workspace = true }
+# Screen capture of one monitor (CoreGraphics on macOS, GDI/DXGI on Windows, X11 /
+# portal on Linux). Default features off: the `image` crate's codecs are not needed,
+# only its RgbaImage buffer, whose Vec is handed to the core without a copy.
+xcap = { version = "0.9.8", default-features = false }
+# The user-defined global shortcut (Carbon hot keys on macOS, RegisterHotKey on
+# Windows, XGrabKey on X11).
+global-hotkey = "0.8"
+# The menu-bar (tray) icon and its native menu.
+tray-icon = "0.26"
+# Put the capture on the clipboard as an image.
+arboard = { version = "3.6", default-features = false, features = ["image-data"] }
+# Native folder picker for "Choose…". The default `xdg-portal` backend talks to the
+# desktop portal over D-Bus on Linux, so no GTK headers are needed to build.
+rfd = "0.17"
+# Open a folder in the file manager (non-mac reveal, "Open Captures Folder").
+opener = "0.9"
+# The OS config and Pictures directories.
+dirs = "6"
+
+# AppKit / CoreGraphics through objc2 — the same majors agg-gui-shell, xcap and wgpu
+# already link, so only one copy of each is built.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", default-features = false, features = [
+    "std",
+    "NSDictionary",
+    "NSGeometry",
+    "NSString",
+    "NSValue",
+] }
+objc2-app-kit = { version = "0.3", default-features = false, features = [
+    "std",
+    "objc2-core-foundation",
+    "NSApplication",
+    "NSCursor",
+    "NSGraphics",
+    "NSGraphicsContext",
+    "NSImage",
+    "NSResponder",
+    "NSRunningApplication",
+    "NSScreen",
+    "NSView",
+    "NSWindow",
+] }
+objc2-core-foundation = { version = "0.3", default-features = false, features = [
+    "std",
+    "CFCGTypes",
+] }
+objc2-core-graphics = { version = "0.3", default-features = false, features = [
+    "std",
+    "CGBitmapContext",
+    "CGColorSpace",
+    "CGContext",
+    "CGEvent",
+    "CGEventTypes",
+    "CGImage",
+    "CGWindow",
+] }
+
+[dev-dependencies]
+tempfile = "3"

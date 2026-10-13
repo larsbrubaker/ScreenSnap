@@ -53,17 +53,21 @@ screensnap-core/   rlib, platform-free, all tests
   ui/mod.rs        root Rebuilder keyed on AppState::mode_version
   ui/overlay/      CaptureOverlay widget (+ loupe, drawing helpers)
   ui/settings_view.rs, ui/hotkey_recorder.rs
-screensnap-native/ bin `screensnap`
-  main.rs          agg_gui_shell::run + the ShellHost (mode → window shape, hotkey and
-                   tray events, deferred delivery, settings save, quit)
-  platform.rs      NativePlatform: SnapPlatform via arboard / rfd / opener / OS permission
-  capture.rs       screen capture of the monitor under the pointer (xcap, all OSes) plus
-                   the pointer image (per-OS; macOS via NSCursor)
+screensnap-native/ bin `screensnap` (CLI: --settings, --capture-now, --write-icon PATH SIZE)
+  main.rs          agg_gui_shell::run, start-up (theme, settings, permission, tray, hotkey)
+  host.rs          the ShellHost: mode -> window shape, reveal after a painted frame,
+                   capture, deferred delivery, settings save, hotkey sync, quit
+  events.rs        hotkey / tray events queue + loop wake
+  platform.rs      NativePlatform: SnapPlatform via arboard / rfd / open -R / CG permission
+  capture/         monitor under the pointer (xcap, all OSes) + pointer image per OS
+                   (pointer_macos.rs via NSCursor + CGEvent; pointer_other.rs: none yet)
   hotkey.rs        global-hotkey registration, re-registration on settings change
   tray.rs          tray-icon menu-bar item and its menu
   window/          per-OS window shaping: macos.rs (NSWindow level, frame, collection
-                   behaviour, activation policy), other.rs (winit-only fallback)
-  persist.rs       settings.json in the OS config dir
+                   behaviour, activation policy), macos_constrain.rs (see below),
+                   other.rs (winit-only fallback)
+  persist.rs       settings.json in the OS config dir (SCREENSNAP_SETTINGS_DIR overrides)
+packaging/macos/Info.plist, scripts/bundle-mac.sh, run-mac.command
 ```
 
 ### The one-window model
@@ -77,8 +81,16 @@ reshapes it when `AppState::mode_version` changes (checked in `ShellHost::on_idl
 | Settings | titled, resizable, ~560×520 logical, centred, normal level, activated      |
 | Overlay  | borderless, frame = the captured monitor's frame (covering the menu bar), level above the menu bar and pop-up menus (`NSScreenSaverWindowLevel`), joins all Spaces / full-screen auxiliary, activated and key |
 
-To avoid a flash of stale content, the overlay is shown at alpha 0, painted once, then
-set to alpha 1 (on the next idle pass after a painted frame). The red close button of the
+To avoid a flash of stale content, the overlay is shown nearly transparent (alpha 1/255 —
+wgpu's Metal backend will not paint a window at alpha 0, which macOS reports as occluded),
+painted once at its new size, then set to alpha 1.
+
+**AppKit frame clamp workaround** (`window/macos_constrain.rs`): agg-gui-shell calls
+`window.is_maximized()` on every `Resized`; winit's macOS implementation briefly toggles a
+borderless window's style mask, and each `setStyleMask` makes AppKit fit the window inside
+the visible area (below the menu bar, above the Dock). While the overlay is up we override
+`constrainFrameRect:toScreen:` on winit's NSWindow subclass to return the rect unchanged.
+Delete it once agg-gui-shell stops calling `is_maximized()` per resize. The red close button of the
 Settings window hides it (`on_close_requested` returns `false` and calls
 `AppState::hide_settings`); only Quit exits.
 
@@ -105,5 +117,8 @@ is still hidden.
 ### Known limitations (v0.1)
 
 - One monitor per capture (the one under the pointer).
+- A click without a drag selects nothing (Greenshot would capture the window under it).
+- Unbundled `cargo run` briefly shows a Dock tile (agg-gui-shell has no activation-policy
+  hook; winit sets Regular at launch); the app bundle does not.
 - Hotkey punctuation keys follow the US layout (letters and digits are layout-proof).
 - An ad-hoc signed bundle loses its Screen Recording grant whenever it is rebuilt.

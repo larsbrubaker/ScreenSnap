@@ -72,9 +72,11 @@ mod tests {
 
     #[test]
     fn round_trips_and_tolerates_missing_fields() {
-        let mut s = Settings::default();
-        s.save_folder = Some(PathBuf::from("/tmp/caps"));
-        s.include_cursor = false;
+        let s = Settings {
+            save_folder: Some(PathBuf::from("/tmp/caps")),
+            include_cursor: false,
+            ..Settings::default()
+        };
         assert_eq!(Settings::from_json(Some(&s.to_json())), s);
 
         let partial = Settings::from_json(Some(r#"{"copy_to_clipboard": false}"#));
