@@ -1,0 +1,25 @@
+# screensnap-native: the desktop app. agg-gui-shell owns the window and event loop; this
+# crate supplies the OS side: screen capture, the global hotkey, the menu-bar icon, the
+# clipboard and files, and reshaping the one window for each mode.
+[package]
+name = "screensnap-native"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Native shell for Screen Snap."
+
+[[bin]]
+name = "screensnap"
+path = "src/main.rs"
+
+[dependencies]
+screensnap-core = { path = "../screensnap-core" }
+agg-gui = { workspace = true }
+agg-gui-shell = { workspace = true }
+serde_json = { workspace = true }

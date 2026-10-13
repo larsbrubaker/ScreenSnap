@@ -1,0 +1,28 @@
+# screensnap-core: everything platform-free and testable — hotkeys, settings, selection
+# geometry, capture output (crop, PNG encoding, file names), the shared app state and all
+# of the widgets (capture overlay, settings window).
+[package]
+name = "screensnap-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Platform-free core of Screen Snap: state, geometry, output and widgets."
+
+[dependencies]
+agg-gui = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+# PNG encoding of the captured region (with a pHYs chunk so Retina captures open at
+# their logical size).
+png = "0.17"
+# Local date and time for saved file names.
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+
+[dev-dependencies]
+tempfile = "3"

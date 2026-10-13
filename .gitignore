@@ -1,0 +1,15 @@
+/target
+**/target
+**/*.rs.bk
+/dist
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Local agent state
+.claude/settings.local.json

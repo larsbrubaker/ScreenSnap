@@ -1,0 +1,57 @@
+# Screen Snap workspace: a Greenshot-style region screenshot tool built on agg-gui
+# (see CLAUDE.md and docs/PLAN.md).
+#
+# - screensnap-core   (rlib) everything testable: hotkeys, settings, selection geometry,
+#                            output (crop, PNG, file names), app state and all widgets.
+# - screensnap-native (bin)  the desktop shell (agg-gui-shell) plus the real platform:
+#                            screen capture, global hotkey, menu-bar icon, clipboard, files.
+[workspace]
+resolver = "2"
+members = ["screensnap-core", "screensnap-native"]
+default-members = ["screensnap-core", "screensnap-native"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+# agg-gui-shell needs wgpu 29 / agg-rust, which require 1.88.
+rust-version = "1.88"
+authors = ["Lars Brubaker <larsbrubaker@matterhackers.com>"]
+license = "MIT"
+repository = "https://github.com/larsbrubaker/ScreenSnap"
+readme = "README.md"
+keywords = ["screenshot", "screen-capture", "greenshot", "gui", "agg-gui"]
+categories = ["multimedia::images", "gui"]
+
+[workspace.dependencies]
+agg-gui = "0.5.1"
+agg-gui-shell = "0.5.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# ---------------------------------------------------------------------------
+# Local development override — the rust-apps superproject lays out agg-gui as a
+# sibling at ../agg-gui/. When Screen Snap needs a capability agg-gui lacks, add
+# it to agg-gui itself rather than working around it here.
+# ---------------------------------------------------------------------------
+[patch.crates-io]
+agg-gui = { path = "../agg-gui/agg-gui" }
+agg-gui-shell = { path = "../agg-gui/agg-gui-shell" }
+
+# ---------------------------------------------------------------------------
+# Debug-build optimization. BOTH sections are required (see the comment in
+# agg-gui/Cargo.toml): agg-gui's generic / #[inline] rendering code is
+# monomorphized into the *calling* crate and inherits that crate's opt-level.
+# ---------------------------------------------------------------------------
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 2
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+
+[profile.release.package."*"]
+opt-level = 3
