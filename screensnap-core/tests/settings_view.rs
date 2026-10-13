@@ -83,6 +83,26 @@ fn permission_warning_appears_live_and_opens_system_settings() {
 }
 
 #[test]
+fn a_capture_without_permission_opens_settings_instead() {
+    // Granted: the shell may grab the screen; nothing else changes.
+    let mut h = Harness::new(560.0, 520.0, 1.0);
+    assert!(h.state.ready_to_capture());
+    assert_eq!(h.state.mode(), Mode::Hidden);
+
+    // Denied: the OS would hand back only the wallpaper, so no frozen screen
+    // — the settings window opens with the warning and says why.
+    h.platform.permission.set(Permission::Denied);
+    assert!(!h.state.ready_to_capture());
+    h.frame();
+    assert_eq!(h.state.mode(), Mode::Settings);
+    assert!(h.visible(PERMISSION_WARNING_ID));
+    assert_eq!(
+        h.label_text(STATUS_ID),
+        screensnap_core::state::CAPTURE_NEEDS_PERMISSION
+    );
+}
+
+#[test]
 fn hotkey_error_and_status_update_live() {
     let mut h = Harness::settings();
     assert!(!h.visible(HOTKEY_ERROR_ID));

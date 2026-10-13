@@ -29,9 +29,14 @@ use chrono::Local;
 
 use crate::capture::Capture;
 use crate::output::{self, Delivery, DeliveryReport};
-use crate::platform::SnapPlatform;
+use crate::platform::{Permission, SnapPlatform};
 use crate::selection::PxRect;
 use crate::settings::{Settings, SettingsStore};
+
+/// The status line when a capture was refused for want of the Screen
+/// Recording permission (see [`AppState::ready_to_capture`]).
+pub const CAPTURE_NEEDS_PERMISSION: &str =
+    "Nothing was captured: Screen Snap needs the Screen Recording permission.";
 
 /// What the single window is showing. See the module docs.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -185,6 +190,20 @@ impl AppState {
     }
 
     // ---- capture --------------------------------------------------------
+
+    /// Whether the shell may grab the screen now. Without the Screen
+    /// Recording permission the OS hands back only the wallpaper, and a
+    /// frozen screen of that would look like a broken capture; so instead the
+    /// settings window opens, whose warning says how to allow it, with
+    /// [`CAPTURE_NEEDS_PERMISSION`] on the status line.
+    pub fn ready_to_capture(&self) -> bool {
+        if self.platform().screen_capture_permission() != Permission::Denied {
+            return true;
+        }
+        self.set_status(Some(CAPTURE_NEEDS_PERMISSION.to_string()));
+        self.show_settings();
+        false
+    }
 
     /// Show `capture` in the overlay. Replaces any capture already showing.
     pub fn begin_capture(&self, capture: Capture) {

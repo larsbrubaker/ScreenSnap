@@ -40,8 +40,10 @@ cargo run --release -p screensnap-native
 
 On macOS, double-click `run-mac.command`, or build an app bundle with
 `scripts/bundle-mac.sh`. The first capture asks for the **Screen Recording** permission
-(System Settings ▸ Privacy & Security ▸ Screen & System Audio Recording); without it the
-frozen screen shows only the desktop.
+(System Settings ▸ Privacy & Security ▸ Screen & System Audio Recording); until it is
+allowed, the hotkey opens Settings with a warning instead of capturing. Run from
+`run-mac.command` or a terminal, the permission belongs to the terminal app (Terminal,
+iTerm…), so allow that app and restart it; the `.app` bundle gets its own entry.
 
 ## Status
 

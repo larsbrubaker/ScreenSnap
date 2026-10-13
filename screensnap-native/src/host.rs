@@ -155,7 +155,9 @@ impl AppHost {
             return;
         }
         self.capture_due = None;
-        if self.state.mode() == Mode::Overlay {
+        // Not Overlay (a second capture would freeze the first), and not
+        // without the permission (the core opens Settings to say so).
+        if self.state.mode() == Mode::Overlay || !self.state.ready_to_capture() {
             return;
         }
         if self.state.mode() == Mode::Settings {

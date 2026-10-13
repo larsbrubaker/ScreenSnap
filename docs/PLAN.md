@@ -105,8 +105,10 @@ is still hidden.
 ### Platform roadmap
 
 - **macOS** (v0.1): everything above. Needs the Screen Recording permission
-  (`CGPreflightScreenCaptureAccess` / `CGRequestScreenCaptureAccess`); without it captures
-  show only the wallpaper. `scripts/bundle-mac.sh` builds `Screen Snap.app`
+  (`CGPreflightScreenCaptureAccess` / `CGRequestScreenCaptureAccess`); without it the OS
+  returns only the wallpaper, so the hotkey opens Settings (warning + status line) instead
+  of freezing that (`AppState::ready_to_capture`). An unbundled binary run from a terminal
+  inherits the *terminal's* grant. `scripts/bundle-mac.sh` builds `Screen Snap.app`
   (`LSUIElement`, bundle id `com.larsbrubaker.screensnap`, ad-hoc signed).
 - **Windows** (next): xcap capture already works; pointer via `GetCursorInfo` +
   `DrawIconEx`; window shaping via winit `WindowLevel::AlwaysOnTop` + borderless
