@@ -228,6 +228,9 @@ pub fn code_for_key(key: &Key) -> Option<&'static str> {
         Key::ArrowDown => Some("ArrowDown"),
         Key::ArrowLeft => Some("ArrowLeft"),
         Key::ArrowRight => Some("ArrowRight"),
+        // F1..F20; agg-gui reports up to F24, which `global-hotkey` cannot register.
+        Key::F(n) => known_code(&format!("F{n}")),
+        // PrintScreen and any other named key arrive by name.
         Key::Other(name) => known_code(name),
         Key::Insert | Key::Escape => None,
     }
@@ -444,8 +447,11 @@ mod tests {
             Hotkey::from_key_event(&Key::Char('a'), mods(false, false, false, false)).is_none()
         );
         assert!(Hotkey::from_key_event(&Key::Char('a'), mods(false, false, true, true)).is_none());
-        let f5 = Hotkey::from_key_event(&Key::Other("F5".into()), Modifiers::default()).unwrap();
+        let f5 = Hotkey::from_key_event(&Key::F(5), Modifiers::default()).unwrap();
         assert_eq!(f5.to_accelerator(), "F5");
+        assert!(Hotkey::from_key_event(&Key::F(24), Modifiers::default()).is_none());
+        let print = Hotkey::from_key_event(&Key::Other("PrintScreen".into()), Modifiers::default());
+        assert_eq!(print.unwrap().to_accelerator(), "PrintScreen");
         assert!(Hotkey::from_key_event(
             &Key::Other("Shift".into()),
             mods(true, false, false, true)

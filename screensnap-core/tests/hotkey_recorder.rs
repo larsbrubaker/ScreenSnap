@@ -112,7 +112,7 @@ fn an_unusable_combination_shows_a_hint_and_keeps_recording() {
     assert_eq!(recorder(&h).hint(), None, "the hint is brief");
 
     // A function key alone is fine.
-    h.key(Key::Other("F5".into()));
+    h.key(Key::F(5));
     assert!(!h.state.recording_hotkey());
     assert_eq!(h.state.settings().hotkey.to_accelerator(), "F5");
     agg_gui::clock::use_real();
